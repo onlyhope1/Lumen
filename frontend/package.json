@@ -1,0 +1,10 @@
+{
+  "name": "ai-doc-intelligence-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'Vite not yet configured'",
+    "build": "echo 'Vite not yet configured'"
+  }
+}
