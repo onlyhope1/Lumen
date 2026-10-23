@@ -1,5 +1,6 @@
 """Documents router — upload, list, get, delete documents."""
 
+import logging
 import uuid
 from typing import Optional
 
@@ -20,6 +21,9 @@ from app.services.file_storage import (
     save_upload,
     delete_file,
 )
+from worker.tasks import process_document
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -75,6 +79,17 @@ async def upload_document(
     db.add(doc)
     await db.flush()
     await db.refresh(doc)
+
+    # Dispatch Celery background task for async document processing
+    try:
+        process_document.delay(str(doc.id))
+        logger.info("Queued Celery process_document task for doc %s", doc.id)
+    except Exception as task_err:
+        logger.warning(
+            "Could not dispatch Celery task immediately for doc %s: %s",
+            doc.id,
+            task_err,
+        )
 
     return DocumentUploadResponse(
         id=doc.id,
